@@ -78,8 +78,8 @@ function deleteMiniKube {
 function reprovisionMiniKube {
   if [ -f /usr/local/bin/minikube ];
   then
-    minikube delete
-    minikube start
+    deleteMiniKube
+    startMiniKube
   else 
     echo "minikube not installed"
   fi
