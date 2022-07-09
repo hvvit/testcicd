@@ -2,7 +2,7 @@ FROM node:14.18.0-slim
 
 WORKDIR /usr/src/app
 
-COPY package.json tsconfig.json src .
+COPY package.json tsconfig.json src ./
 
 RUN npm install
 
