@@ -3,6 +3,10 @@ on:
   push:
     paths-ignore:
       - 'build/**'
+env:
+  DOCKER_USER: ${{secrets.DOCKER_USER}}
+  DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -25,7 +29,10 @@ jobs:
     - name: Run Build
       run: npm run build
 
+    - name: docker login
+      run: |
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+
     - name: build docker image and push
       run: docker build -t harsh7896/assignment:project.${GITHUB_SHA::6} .
-  
     
