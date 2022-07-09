@@ -33,6 +33,9 @@ jobs:
       run: |
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
 
-    - name: build docker image and push
+    - name: build docker image
       run: docker build -t harsh7896/assignment:project.${GITHUB_SHA::6} .
+
+    - name: push docker image
+      run: docker push harsh7896/assignment:project.${GITHUB_SHA::6}
     
