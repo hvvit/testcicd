@@ -25,7 +25,7 @@ jobs:
     - name: Run Build
       run: npm run build
 
-    - name: Get Env Variables
-      run: printenv
+    - name: build docker image and push
+      run: docker build -t harsh7896/assignment:project.${GITHUB_SHA::6}
   
     
