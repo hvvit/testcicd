@@ -26,6 +26,6 @@ jobs:
       run: npm run build
 
     - name: build docker image and push
-      run: docker build -t harsh7896/assignment:project.${GITHUB_SHA::6}
+      run: docker build -t harsh7896/assignment:project.${GITHUB_SHA::6} .
   
     
