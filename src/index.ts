@@ -17,7 +17,10 @@ connectDatabase((error) => {
           (async function () {
             await agenda.start();
           })();
-        } else {
+        } else if (process.env.SERVER_TYPE === 'metrics') {
+          // this is an metrics exporter
+          require('./metrics');
+        }else {
           // this is an api container, start express server
           require('./server');
         }

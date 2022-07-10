@@ -7,6 +7,7 @@ services:
       - "3000:3000"
     environment: 
       SERVER_TYPE: server
+      SERVER_PORT: 3000
     env_file: local.env
     depends_on: 
       - db
@@ -20,6 +21,19 @@ services:
     depends_on: 
       - db
       - s3
+  metrics:
+    image: thumbnail-task
+    build: .
+    environment: 
+      SERVER_TYPE: metrics
+      METRICS_PORT: 9190
+    env_file: local.env
+    depends_on: 
+      - db
+      - s3
+      - task
+    ports:
+      - "9190:9190"
   db:
     image : mongo
     volumes:
