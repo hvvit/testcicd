@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: minio
+  labels:
+    service: s3
+  name: s3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: s3
+  template:
+    metadata:
+      labels:
+        service: s3
+    spec:
+      containers:
+        - args:
+            - server
+            - /data
+          env:
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_ACCESS_KEY
+                  name: local-env
+            - name: MINIO_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_ENDPOINT
+                  name: local-env
+            - name: MINIO_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_PORT
+                  name: local-env
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_SECRET_KEY
+                  name: local-env
+            - name: MINIO_USE_SSL
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_USE_SSL
+                  name: local-env
+            - name: MONGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: MONGO_URL
+                  name: local-env
+          image: minio/minio
+          name: s3
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - mountPath: /data
+              name: s3-claim0
+      restartPolicy: Always
+      volumes:
+        - name: s3-claim0
+          persistentVolumeClaim:
+            claimName: s3-claim0
