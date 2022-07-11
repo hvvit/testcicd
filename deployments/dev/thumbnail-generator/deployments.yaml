@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: api
+  name: api
+  namespace: thumbnail-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: api
+  template:
+    metadata:
+      labels:
+        service: api
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+        - env:
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_ACCESS_KEY
+                  name: local-env
+            - name: MINIO_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_ENDPOINT
+                  name: local-env
+            - name: MINIO_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_PORT
+                  name: local-env
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_SECRET_KEY
+                  name: local-env
+            - name: MINIO_USE_SSL
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_USE_SSL
+                  name: local-env
+            - name: MONGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: MONGO_URL
+                  name: local-env
+            - name: SERVER_PORT
+              value: "3000"
+            - name: SERVER_TYPE
+              value: server
+          image: harsh7896/assignment:project.c20b08
+          name: api
+          ports:
+            - containerPort: 3000
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: task
+  name: task
+  namespace: thumbnail-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: task
+  template:
+    metadata:
+      labels:
+        service: task
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+        - env:
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_ACCESS_KEY
+                  name: local-env
+            - name: MINIO_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_ENDPOINT
+                  name: local-env
+            - name: MINIO_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_PORT
+                  name: local-env
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_SECRET_KEY
+                  name: local-env
+            - name: MINIO_USE_SSL
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_USE_SSL
+                  name: local-env
+            - name: MONGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: MONGO_URL
+                  name: local-env
+            - name: SERVER_TYPE
+              value: worker
+          image: harsh7896/assignment:project.c20b08
+          name: task
+        - env:
+            - name: METRICS_PORT
+              value: "9190"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_ACCESS_KEY
+                  name: local-env
+            - name: MINIO_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_ENDPOINT
+                  name: local-env
+            - name: MINIO_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_PORT
+                  name: local-env
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_SECRET_KEY
+                  name: local-env
+            - name: MINIO_USE_SSL
+              valueFrom:
+                configMapKeyRef:
+                  key: MINIO_USE_SSL
+                  name: local-env
+            - name: MONGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: MONGO_URL
+                  name: local-env
+            - name: SERVER_TYPE
+              value: metrics
+          image: harsh7896/assignment:project.c20b08
+          name: metrics
+          ports:
+            - containerPort: 9190
+      restartPolicy: Always

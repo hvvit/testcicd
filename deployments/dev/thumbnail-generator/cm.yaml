@@ -8,7 +8,7 @@ data:
   MONGO_URL: mongodb://db.mongo.svc.cluster.local:27017
 kind: ConfigMap
 metadata:
-  namespace: minio
+  namespace: thumbnail-generator
   labels:
     service: api-local-env
   name: local-env
