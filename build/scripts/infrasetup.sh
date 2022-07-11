@@ -85,11 +85,19 @@ function reprovisionMiniKube {
   fi
 }
 
+function kubeSecret {
+kubectl create secret docker-registry regcred -n thumbnail-generator\
+  --docker-server=$DOCKER_REGISTRY_SERVER \
+  --docker-username=$DOCKER_USER \
+  --docker-password=$DOCKER_PASSWORD \
+  --docker-email=$DOCKER_EMAIL
+}
+
 function help {
   echo "Try these parameters instead"
   echo "bash ${0} <options>"
   echo -e "\noptions:"
-  echo -e "\n  installKubeCtl\n  installMiniKube\n  startMiniKube\n  stopMiniKube\n  restartMiniKube\n  deleteMiniKube\n  reprovisionMiniKube\n  help\n"
+  echo -e "\n  installKubeCtl\n  installMiniKube\n  startMiniKube\n  stopMiniKube\n  restartMiniKube\n  deleteMiniKube\n  reprovisionMiniKube\n  kubeSecret\n  help\n"
   echo -e "for example:"
   echo "  bash ${0} installKubeCtl"
 }
@@ -113,6 +121,9 @@ case "$command" in
   $command
   ;;
   *reprovisionMiniKube*)
+  $command
+  ;;
+  *kubeSecret*)
   $command
   ;;
   *help*)
