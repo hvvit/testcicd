@@ -53,7 +53,7 @@ spec:
               value: "3000"
             - name: SERVER_TYPE
               value: server
-          image: harsh7896/assignment:project.c20b08
+          image: harsh7896/assignment:project.ba01ad
           name: api
           ports:
             - containerPort: 3000
@@ -112,7 +112,7 @@ spec:
                   name: local-env
             - name: SERVER_TYPE
               value: worker
-          image: harsh7896/assignment:project.c20b08
+          image: harsh7896/assignment:project.ba01ad
           name: task
         - env:
             - name: METRICS_PORT
@@ -149,7 +149,7 @@ spec:
                   name: local-env
             - name: SERVER_TYPE
               value: metrics
-          image: harsh7896/assignment:project.c20b08
+          image: harsh7896/assignment:project.ba01ad
           name: metrics
           ports:
             - containerPort: 9190
