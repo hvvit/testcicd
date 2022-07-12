@@ -47,7 +47,7 @@ jobs:
 
     - name: change image for deployment
       run: |
-        sed -i "s/image:.*/image: harsh7896/assignment:project.${GITHUB_SHA::6}/g" deployments/dev/thumbnail-generator/deployments.yaml
+        sed -i "s#image:.*#image: harsh7896/assignment:project.${GITHUB_SHA::6}#g" deployments/dev/thumbnail-generator/deployments.yaml
 
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
