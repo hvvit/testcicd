@@ -112,12 +112,24 @@ function installArgo {
 }
 
 function installAll {
+  deleteMiniKube
   startMiniKube
   kubectl create namespace thumbnail-generator 
   kubectl create namespace minio
   kubectl create namespace mongo
   kubeSecret
   installArgo
+  echo "Waiting for 15s"
+  sleep 15s
+  git_root_dir=$(git rev-parse --show-toplevel)
+  echo "Deploying Minio argocd project"
+  kubectl apply -f ${git_root_dir}/deployments/dev/argocd/minio.yaml
+  echo "Deploying Mongo argocd project"
+  kubectl apply -f ${git_root_dir}/deployments/dev/argocd/mongo.yaml
+  echo "Waiting for 60s"
+  sleep 60s
+  echo "Deploying thumbnail argocd project"
+  kubectl apply -f ${git_root_dir}/deployments/dev/argocd/thumbnail-generator.yaml
 }
 
 function help {
