@@ -8,6 +8,8 @@ env:
   DOCKER_USER: ${{secrets.DOCKER_USER}}
   DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
 
+permissions:
+  contents: write
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -40,11 +42,15 @@ jobs:
     - name: push docker image
       run: docker push harsh7896/assignment:project.${GITHUB_SHA::6}
 
+    - name: image name
+      run: echo "harsh7896/assignment:project.${GITHUB_SHA::6}"
+
     - name: change image for deployment
       run: |
-        sed -i \"s/image:.*/image: harsh7896/assignment:project.${GITHUB_SHA::6}/g" deployments/dev/thumbnail-generator/deployments.yaml
+        sed -i "s/image:.*/image: harsh7896/assignment:project.${GITHUB_SHA::6}/g" deployments/dev/thumbnail-generator/deployments.yaml
 
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Automation for deployment changes
         file_pattern: deployments/dev/thumbnail-generator/deployments.yaml
+        commit_author: Author <actions@github.com>
