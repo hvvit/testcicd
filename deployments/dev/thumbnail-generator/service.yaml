@@ -13,7 +13,6 @@ spec:
   selector:
     service: task
 ---
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -26,5 +25,22 @@ spec:
     - name: "api"
       port: 3000
       targetPort: 3000
+  selector:
+    service: api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: api
+  name: apinodeport
+  namespace: thumbnail-generator
+spec:
+  type: NodePort
+  ports:
+    - name: "api"
+      port: 3000
+      targetPort: 3000
+      nodePort: 30007
   selector:
     service: api
