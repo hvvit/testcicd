@@ -37,7 +37,7 @@ function installMiniKube {
 function startMiniKube {
   if [ -f /usr/local/bin/minikube ];
   then
-    minikube start
+    minikube start --memory 8192 --cpus 3
     minikube addons enable metrics-server
   else 
     echo "minikube not installed"
@@ -101,6 +101,7 @@ function installArgo {
   sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
   sudo chmod a+x /usr/local/bin/argocd
   kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+  sleep 80s
   argoPass=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
   echo "Username: admin"
   echo "Password: "$argoPass
@@ -117,6 +118,7 @@ function installAll {
   kubectl create namespace thumbnail-generator 
   kubectl create namespace minio
   kubectl create namespace mongo
+  kubectl create namespace prometheus
   kubeSecret
   installArgo
   echo "Waiting for 15s"
@@ -126,6 +128,8 @@ function installAll {
   kubectl apply -f ${git_root_dir}/deployments/dev/argocd/minio.yaml
   echo "Deploying Mongo argocd project"
   kubectl apply -f ${git_root_dir}/deployments/dev/argocd/mongo.yaml
+  echo "Deploying prometheus project"
+  kubectl apply -f ${git_root_dir}/deployments/dev/argocd/prometheus.yaml
   echo "Waiting for 60s"
   sleep 60s
   echo "Deploying thumbnail argocd project"
