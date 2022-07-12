@@ -38,6 +38,7 @@ function startMiniKube {
   if [ -f /usr/local/bin/minikube ];
   then
     minikube start
+    minikube addons enable metrics-server
   else 
     echo "minikube not installed"
   fi
@@ -93,11 +94,37 @@ kubectl create secret docker-registry regcred -n thumbnail-generator\
   --docker-email=$DOCKER_EMAIL
 }
 
+function installArgo {
+  minikube addons enable ingress
+  kubectl create namespace argocd
+  kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+  sudo chmod a+x /usr/local/bin/argocd
+  kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+  argoPass=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+  echo "Username: admin"
+  echo "Password: "$argoPass
+  argoURL=$(minikube service argocd-server -n argocd --url | tail -n 1 | sed -e 's|http://||')
+  echo "Click on the URL to go to GUI: "$argoURL
+  echo "logging into argocd cli"
+  argocd login --insecure --grpc-web $argoURL  --username admin --password $argoPass
+  argocd repo  add ${git_repo} --username ${git_username} --password ${git_token} --insecure-skip-server-verification
+}
+
+function installAll {
+  startMiniKube
+  kubectl create namespace thumbnail-generator 
+  kubectl create namespace minio
+  kubectl create namespace mongo
+  kubeSecret
+  installArgo
+}
+
 function help {
   echo "Try these parameters instead"
   echo "bash ${0} <options>"
   echo -e "\noptions:"
-  echo -e "\n  installKubeCtl\n  installMiniKube\n  startMiniKube\n  stopMiniKube\n  restartMiniKube\n  deleteMiniKube\n  reprovisionMiniKube\n  kubeSecret\n  help\n"
+  echo -e "\n  installKubeCtl\n  installMiniKube\n  startMiniKube\n  stopMiniKube\n  restartMiniKube\n  deleteMiniKube\n  reprovisionMiniKube\n  kubeSecret\n  installArgo\n  installAll\n  help\n"
   echo -e "for example:"
   echo "  bash ${0} installKubeCtl"
 }
@@ -126,10 +153,17 @@ case "$command" in
   *kubeSecret*)
   $command
   ;;
+  *installArgo*)
+  $command
+  ;;
+  *installAll*)
+  $command
+  ;;
   *help*)
   help
   ;;
   *)
   echo -e "${command} command not found\n"
   help
+  ;;
 esac
