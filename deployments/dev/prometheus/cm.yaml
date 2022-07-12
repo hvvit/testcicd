@@ -26,5 +26,3 @@ data:
 kind: ConfigMap
 metadata:
   name: prometheus-config
-  resourceVersion: "3176"
-
