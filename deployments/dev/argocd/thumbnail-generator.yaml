@@ -7,8 +7,8 @@ spec:
   ignoreDifferences:
   - group: apps
     kind: Deployment
-    name: nginx
-    namespace: test-hpa
+    name: task
+    namespace: thumbnail-generator
     jsonPointers:
     - /spec/replicas
   destination:
