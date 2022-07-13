@@ -16,16 +16,26 @@ function installKubeCtl {
   fi
 }
 
+function installHelm {
+  if [ -f /usr/local/bin/helm ];
+  then
+    echo "helm already exists"
+  else
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    chmod +x get_helm.sh
+    ./get_helm.sh
+    rm get_helm.sh
+    echo "Helm Installed"
+  fi
+}
 #function to install minikube
 function installMiniKube {
   if [ -f /usr/local/bin/minikube ];
   then
     echo "minikube already installed.."
-  fi
-  sudo apt update -y
-  sudo apt install curl apt-transport-https virtualbox virtualbox-ext-pack wget -y
-  if [ $? == "0" ];
-  then
+  else
+    sudo apt update -y
+    sudo apt install curl apt-transport-https virtualbox virtualbox-ext-pack wget -y
     wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
     sudo mv minikube-linux-amd64 /usr/local/bin/minikube
     sudo chmod 755 /usr/local/bin/minikube
@@ -94,25 +104,73 @@ kubectl create secret docker-registry regcred -n thumbnail-generator\
   --docker-email=$DOCKER_EMAIL
 }
 
+function waitForPods {
+  namespace=$1
+  pods=$(kubectl get pod -n ${namespace} | awk 'NR>1{print $1}')
+  for pod in ${pods}
+  do
+    echo "waiting for ${pod} in ${namespace}"
+    while [[ $(kubectl get pods ${pod} -n ${namespace} -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do
+      sleep 10s
+      echo "Sleeping for 10s to wait..Ctrl+C to cancel"
+    done
+    echo "${pod} is in running state"
+  done
+}
+function installArgoCli {
+  if [ -f /usr/local/bin/argocd ];
+  then
+    echo "argocli already installed"
+  else 
+  curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+  sudo chmod a+x argocd
+  sudo mv argocd /usr/local/bin/argocd
+  fi
+}
+
+function argoLogin {
+  argoURL=$(minikube service argocd-server -n argocd --url | tail -n 1 | sed -e 's|http://||') 
+  while [[ $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) == "" ]]
+  do
+    echo "Password not generated..sleeping for 10s"
+    sleep 10s
+  done
+  argoPass=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+  argocd login --insecure --grpc-web $argoURL  --username admin --password $argoPass
+  argocd repo  add ${git_repo} --username ${git_username} --password ${git_token} --insecure-skip-server-verification
+}
 function installArgo {
   minikube addons enable ingress
   kubectl create namespace argocd
   kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-  sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-  sudo chmod a+x /usr/local/bin/argocd
+  installArgoCli
   kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
-  sleep 80s
+  waitForPods argocd
+  argoLogin
+}
+
+function argoDetails {
+  argoURL=$(minikube service argocd-server -n argocd --url | tail -n 1 | sed -e 's|http://||')
   argoPass=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
   echo "Username: admin"
   echo "Password: "$argoPass
-  argoURL=$(minikube service argocd-server -n argocd --url | tail -n 1 | sed -e 's|http://||')
   echo "Click on the URL to go to GUI: "$argoURL
   echo "logging into argocd cli"
-  argocd login --insecure --grpc-web $argoURL  --username admin --password $argoPass
-  argocd repo  add ${git_repo} --username ${git_username} --password ${git_token} --insecure-skip-server-verification
 }
 
+function installPrometheusAdaptor {
+  git_root_dir=$(git rev-parse --show-toplevel)
+  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+  helm repo update
+  helm install prometheus-adapter prometheus-community/prometheus-adapter -f ${git_root_dir}/deployments/dev/values/prometheus-adaptor.yaml
+  echo "Waiting for applying the changes"
+  sleep 10s
+  waitForPods default
+}
 function installAll {
+  installKubeCtl
+  installHelm
+  installMiniKube
   deleteMiniKube
   startMiniKube
   kubectl create namespace thumbnail-generator 
@@ -130,17 +188,24 @@ function installAll {
   kubectl apply -f ${git_root_dir}/deployments/dev/argocd/mongo.yaml
   echo "Deploying prometheus project"
   kubectl apply -f ${git_root_dir}/deployments/dev/argocd/prometheus.yaml
-  echo "Waiting for 60s"
-  sleep 60s
+  echo "Waiting for 20s"
+  sleep 30s
+  waitForPods minio
+  waitForPods mongo
   echo "Deploying thumbnail argocd project"
   kubectl apply -f ${git_root_dir}/deployments/dev/argocd/thumbnail-generator.yaml
+  waitForPods default
+  waitForPods thumbnail-generator
+  installPrometheusAdaptor
+  echo ""
+  argoDetails
 }
 
 function help {
   echo "Try these parameters instead"
   echo "bash ${0} <options>"
   echo -e "\noptions:"
-  echo -e "\n  installKubeCtl\n  installMiniKube\n  startMiniKube\n  stopMiniKube\n  restartMiniKube\n  deleteMiniKube\n  reprovisionMiniKube\n  kubeSecret\n  installArgo\n  installAll\n  help\n"
+  echo -e "\n  installKubeCtl\n  installMiniKube\n installPrometheusAdaptor\n  installHelm\n  startMiniKube\n  stopMiniKube\n  restartMiniKube\n  deleteMiniKube\n  reprovisionMiniKube\n  kubeSecret\n  installArgo\n  argoDetails\n  installAll\n  help\n"
   echo -e "for example:"
   echo "  bash ${0} installKubeCtl"
 }
@@ -173,6 +238,15 @@ case "$command" in
   $command
   ;;
   *installAll*)
+  $command
+  ;;
+  *argoDetails*)
+  $command
+  ;;
+  *installHelm*)
+  $command
+  ;;
+  *installPrometheusAdaptor*)
   $command
   ;;
   *help*)
