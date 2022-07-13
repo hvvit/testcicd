@@ -1,0 +1,17 @@
+prometheus:
+  url: http://prometheus-svc.default.svc.cluster.local
+  port: 9090
+
+rules:
+  external:
+  - seriesQuery: '{__name__=~"num_of_requests_in_waiting"}'
+    resources:
+      overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+    name:
+      matches: ""
+      as: "num_of_requests_in_waiting"
+    metricsQuery: num_of_requests_in_waiting
