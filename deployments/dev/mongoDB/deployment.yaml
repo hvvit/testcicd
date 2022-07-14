@@ -6,6 +6,8 @@ metadata:
   name: db
   namespace: mongo
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:

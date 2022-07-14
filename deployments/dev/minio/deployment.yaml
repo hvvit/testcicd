@@ -6,6 +6,8 @@ metadata:
     service: s3
   name: s3
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
