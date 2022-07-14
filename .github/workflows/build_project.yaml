@@ -7,6 +7,7 @@ on:
 env:
   DOCKER_USER: ${{secrets.DOCKER_USER}}
   DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+  DOCKER_REPO: ${{secrets.DOCKER_REPO}}
 
 permissions:
   contents: write
@@ -37,17 +38,17 @@ jobs:
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
 
     - name: build docker image
-      run: docker build -t harsh7896/assignment:project.${GITHUB_SHA::6} .
+      run: docker build -t $DOCKER_REPO:project.${GITHUB_SHA::6} .
 
     - name: push docker image
-      run: docker push harsh7896/assignment:project.${GITHUB_SHA::6}
+      run: docker push $DOCKER_REPO:project.${GITHUB_SHA::6}
 
     - name: image name
-      run: echo "harsh7896/assignment:project.${GITHUB_SHA::6}"
+      run: echo "$DOCKER_REPO:project.${GITHUB_SHA::6}"
 
     - name: change image for deployment
       run: |
-        sed -i "s#image:.*#image: harsh7896/assignment:project.${GITHUB_SHA::6}#g" deployments/dev/thumbnail-generator/deployments.yaml
+        sed -i "s#image:.*#image: ${DOCKER_REPO}:project.${GITHUB_SHA::6}#g" deployments/dev/thumbnail-generator/deployments.yaml
 
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
