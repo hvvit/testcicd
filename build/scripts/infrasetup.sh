@@ -96,6 +96,7 @@ function reprovisionMiniKube {
   fi
 }
 
+#function generate docker secret for thumbnail generator
 function kubeSecret {
 kubectl create secret docker-registry regcred -n thumbnail-generator\
   --docker-server=$DOCKER_REGISTRY_SERVER \
@@ -104,6 +105,7 @@ kubectl create secret docker-registry regcred -n thumbnail-generator\
   --docker-email=$DOCKER_EMAIL
 }
 
+#function to wait for pods in specific pod
 function waitForPods {
   namespace=$1
   pods=$(kubectl get pod -n ${namespace} | awk 'NR>1{print $1}')
@@ -117,6 +119,8 @@ function waitForPods {
     echo "${pod} is in running state"
   done
 }
+
+#function to install argo cli
 function installArgoCli {
   if [ -f /usr/local/bin/argocd ];
   then
@@ -128,6 +132,7 @@ function installArgoCli {
   fi
 }
 
+#function to do argologin and install github private repo
 function argoLogin {
   argoURL=$(minikube service argocd-server -n argocd --url | tail -n 1 | sed -e 's|http://||') 
   while [[ $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d) == "" ]]
@@ -139,6 +144,8 @@ function argoLogin {
   argocd login --insecure --grpc-web $argoURL  --username admin --password $argoPass
   argocd repo  add ${git_repo} --username ${git_username} --password ${git_token} --insecure-skip-server-verification
 }
+
+#function to install argo helm chart inside kubernetes cluster
 function installArgo {
   minikube addons enable ingress
   kubectl create namespace argocd
@@ -149,6 +156,7 @@ function installArgo {
   argoLogin
 }
 
+#function to fetch argo login details
 function argoDetails {
   argoURL=$(minikube service argocd-server -n argocd --url | tail -n 1 | sed -e 's|http://||')
   argoPass=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
@@ -158,6 +166,7 @@ function argoDetails {
   echo "logging into argocd cli"
 }
 
+#function to install prometheus adaptor helm chart
 function installPrometheusAdaptor {
   git_root_dir=$(git rev-parse --show-toplevel)
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -167,6 +176,7 @@ function installPrometheusAdaptor {
   sleep 10s
   waitForPods default
 }
+#function to install all the components
 function installAll {
   installKubeCtl
   installHelm
