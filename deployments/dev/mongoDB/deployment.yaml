@@ -16,8 +16,6 @@ spec:
     metadata:
       labels:
         service: db
-    annotations:
-      backup.velero.io/backup-volumes: db-claim0
     spec:
       containers:
         - image: mongo
