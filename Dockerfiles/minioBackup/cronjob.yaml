@@ -1,0 +1,49 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: minio-backup
+spec:
+  schedule: "0 */6 * * *" #Cron job every 6 hours
+  startingDeadlineSeconds: 60
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: minio-backup
+              image: harsh7896/backup:miniopsv1
+              imagePullPolicy: "Always"
+              env:
+                - name: MINIO_URL
+                  value: s3.minio.svc.cluster.local
+                - name: REGION
+                  value: ap-south-1
+                - name: AWS_SHARED_CREDENTIALS_FILE
+                  value: /root/credentials
+                - name: AWS_CONFIG_FILE
+                  value: /root/config
+                - name: OPS
+                  value: "BACKUP"
+                - name: BUCKET
+                  value: "miniodumpshvvit7896"
+                - name: MINIO_ACCESS_KEY_ID
+                  value: someaccesskey
+                - name: MINIO_SECRET_ACCESS_KEY
+                  value: somesecretkey
+              command: ['bash', "-c","./ops.sh"]
+              volumeMounts:
+               - name: aws-cred
+                 mountPath: "/root/credentials"
+                 subPath: credentials
+               - name: aws-cred
+                 mountPath: "/root/config"
+                 subPath: config
+          restartPolicy: OnFailure
+          volumes:
+            - name: aws-cred
+              secret:
+                secretName: aws
