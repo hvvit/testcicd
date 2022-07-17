@@ -47,8 +47,9 @@ function installMiniKube {
 function startMiniKube {
   if [ -f /usr/local/bin/minikube ];
   then
-    minikube start --memory 8192 --cpus 3
+    minikube start
     minikube addons enable metrics-server
+    minikube addons enable volumesnapshots
   else 
     echo "minikube not installed"
   fi
