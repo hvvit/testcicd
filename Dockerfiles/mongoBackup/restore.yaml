@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodump-restore
+spec:
+  template:
+    spec:
+      containers:
+        - name: mongodump-restore
+          image: harsh7896/backup:mongopsv1
+          imagePullPolicy: "Always"
+          env:
+            - name:  MONGODB_URI
+              value: mongodb://db.mongo.svc.cluster.local:27017
+            - name: REGION
+              value: ap-south-1
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: /root/credentials
+            - name: AWS_CONFIG_FILE
+              value: /root/config
+            - name: OPS
+              value: "RESTORE"
+            - name: BUCKET
+              value: "mongodumpshvvit7896"
+            - name: DUMPNAME
+              value: mongo_20220717114140.gz
+          command: ['bash', "-c","./ops.sh"]
+          volumeMounts:
+           - name: aws-cred
+             mountPath: "/root/credentials"
+             subPath: credentials
+           - name: aws-cred
+             mountPath: "/root/config"
+             subPath: config
+      restartPolicy: OnFailure
+      volumes:
+        - name: aws-cred
+          secret:
+            secretName: aws
+  backoffLimit: 4
