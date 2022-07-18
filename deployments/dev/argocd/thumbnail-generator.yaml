@@ -17,7 +17,7 @@ spec:
   project: default 
   source: 
     path: deployments/dev/thumbnail-generator
-    repoURL: https://github.com/hvvit/devops-assignment-thumbnail-generator-api
+    repoURL: https://github.com/hvvit/testcicd
     targetRevision: main
   syncPolicy: 
     automated:
